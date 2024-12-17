@@ -6,7 +6,7 @@
     "test": "jest"
   },
   "keywords": [],
-  "authors": [{ "name": "Kinski Wu" }, { "name": "Cristiano Giardina" }],
+  "author": "Kinski Wu, Cristiano Giardina",
   "license": "ISC",
   "description": "",
   "devDependencies": {

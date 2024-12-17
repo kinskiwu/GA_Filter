@@ -1,7 +1,8 @@
 {
   "manifest_version": 3,
   "name": "GA Filter",
-  "authors": [{ "name": "Kinski Wu" }, { "name": "Cristiano Giardina" }],
+  "version": "1.0.0",
+  "author": "Kinski Wu, Cristiano Giardina",
   "description": "A Chrome extension that filters posts on x.com.",
   "permissions": ["storage"],
   "host_permissions": ["https://x.com/*", "https://twitter.com/*"],
