@@ -22,7 +22,6 @@ describe('Post Filter Core Functionality', () => {
   });
 
   test('filters video and external link posts when enabled', () => {
-    // Filter is already enabled in beforeEach
     PostFilter.filterUnwantedPosts();
 
     const posts = document.querySelectorAll('[data-testid="cellInnerDiv"]');

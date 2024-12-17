@@ -1,13 +1,13 @@
 {
   "manifest_version": 3,
   "name": "GA Filter",
-  "version": "1.0",
-  "author": "Kinski Wu",
-  "description": "A tool to filter posts on x.com that contain videos, GIFs, and external links.",
+  "authors": [{ "name": "Kinski Wu" }, { "name": "Cristiano Giardina" }],
+  "description": "A Chrome extension that filters posts on x.com.",
   "permissions": ["storage"],
-  "host_permissions": ["https://x.com/*"],
+  "host_permissions": ["https://x.com/*", "https://twitter.com/*"],
   "action": {
     "default_popup": "popup/popup.html",
+    "default_title": "GA Filter",
     "default_icon": {
       "16": "icons/icon_16.png",
       "24": "icons/icon_24.png",
@@ -18,7 +18,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://x.com/*"],
+      "matches": ["https://x.com/*", "https://twitter.com/*"],
       "js": ["content/content.js"]
     }
   ],
