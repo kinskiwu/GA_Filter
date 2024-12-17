@@ -66,3 +66,36 @@ chrome.storage.local.get('hidePostsEnabled', ({ hidePostsEnabled = false }) => {
     initializePostObserver();
   }
 });
+
+if (typeof window !== 'undefined') {
+  window.extensionUtils = {
+    filterUnwantedPosts,
+    showFilteredPosts,
+    handleMessage: (message) => {
+      if (message.action === "toggleHidePosts") {
+        isFilterEnabled = message.isEnabled;
+        if (!isFilterEnabled) {
+          postObserver?.disconnect();
+          postObserver = null;
+          showFilteredPosts();
+        } else {
+          initializePostObserver();
+        }
+      }
+    }
+  };
+}
+
+// For testing use
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    filterUnwantedPosts,
+    showFilteredPosts,
+    initializePostObserver,
+    // For testing state
+    getState: () => ({ isFilterEnabled }),
+    setState: (state) => {
+      isFilterEnabled = state.isFilterEnabled;
+    }
+  };
+}
