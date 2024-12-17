@@ -1,87 +1,68 @@
-// Global state for MutationObserver and feature toggle
-let observer = null;
-let hidePostsEnabled = false;
+// Tracks DOM changes and filter state
+let postObserver = null;
+let isFilterEnabled = false;
 
-// Hides posts containing videos, GIFs, or external links
-const hideVideoGifAndExternalLinkPosts = () => {
-  if (!hidePostsEnabled) return;
+const filterUnwantedPosts = () => {
+  if (!isFilterEnabled) return;
 
-  document.querySelectorAll('div[data-testid="cellInnerDiv"]').forEach(post => {
-    // Check for video components, gifs & external links
+  document.querySelectorAll('[data-testid="cellInnerDiv"]').forEach(post => {
     const videoComponent = post.querySelector('[data-testid="videoComponent"]');
-    const videoElement = videoComponent ? videoComponent.querySelector('video') : null;
-    const isGif = videoElement && videoElement.hasAttribute('poster');
-    const externalLink = post.querySelector('a[href^="http://"], a[href^="https://"]');
+    const videoElement = videoComponent?.querySelector('video');
+    const isGifPost = videoElement?.hasAttribute('poster');
+    const hasExternalLink = post.querySelector('a[href^="http://"], a[href^="https://"]');
 
-    // Hide post if it contains any filtered content and hasn't been hidden yet
-    if (!post.dataset.hidden && (isGif || videoComponent || externalLink)) {
+    if (!post.dataset.filtered && (isGifPost || videoComponent || hasExternalLink)) {
       post.style.display = 'none';
-      post.dataset.hidden = 'true';
+      post.dataset.filtered = 'true';
     }
   });
 };
 
-// Initializes MutationObserver to watch for new posts
-const startObserver = () => {
-  if (observer) return;
+const initializePostObserver = () => {
+  if (postObserver) return;
 
-  // Create observer to detect new posts being added to the page
-  observer = new MutationObserver((mutations) => {
+  postObserver = new MutationObserver((mutations) => {
     for (const mutation of mutations) {
       if (mutation.addedNodes.length) {
-        hideVideoGifAndExternalLinkPosts();
+        filterUnwantedPosts();
       }
     }
   });
 
-  // Watch for changes in DOM tree
-  observer.observe(document.body, {
+  postObserver.observe(document.body, {
     childList: true,
     subtree: true,
   });
 
-  // Handle existing posts on page
-  hideVideoGifAndExternalLinkPosts();
+  filterUnwantedPosts();
 };
 
-// Restores visibility of all hidden posts
-const showHiddenPosts = () => {
-  document.querySelectorAll('div[data-testid="cellInnerDiv"]').forEach(post => {
-    if (post.dataset.hidden) {
+const showFilteredPosts = () => {
+  document.querySelectorAll('[data-testid="cellInnerDiv"]').forEach(post => {
+    if (post.dataset.filtered) {
       post.style.display = '';
-      delete post.dataset.hidden;
+      delete post.dataset.filtered;
     }
   });
 };
 
-// Handle toggle messages from popup
 chrome.runtime.onMessage.addListener((message) => {
   if (message.action === "toggleHidePosts") {
-    hidePostsEnabled = message.isEnabled;
-    if (!hidePostsEnabled) {
-      // Clean up observer and show posts when disabled
-      if (observer) {
-        observer.disconnect();
-        observer = null;
-      }
-      showHiddenPosts();
+    isFilterEnabled = message.isEnabled;
+
+    if (!isFilterEnabled) {
+      postObserver?.disconnect();
+      postObserver = null;
+      showFilteredPosts();
     } else {
-      // Start observing when enabled
-      startObserver();
+      initializePostObserver();
     }
   }
 });
 
-// Initialize extension state from storage
-chrome.storage.local.get('hidePostsEnabled', ({ hidePostsEnabled: hidePosts = false }) => {
-  hidePostsEnabled = hidePosts;
-  if (hidePostsEnabled) {
-    startObserver();
+chrome.storage.local.get('hidePostsEnabled', ({ hidePostsEnabled = false }) => {
+  isFilterEnabled = hidePostsEnabled;
+  if (isFilterEnabled) {
+    initializePostObserver();
   }
 });
-
-// Export functions for testing
-module.exports = {
-  hideVideoGifAndExternalLinkPosts,
-  startObserver
-};

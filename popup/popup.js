@@ -1,26 +1,28 @@
 document.addEventListener('DOMContentLoaded', async () => {
-  const button = document.getElementById('toggleButton');
+  const toggleButton = document.getElementById('toggleButton');
 
-  // Get current state
   const { hidePostsEnabled = false } = await chrome.storage.local.get('hidePostsEnabled');
-  updateButtonState(hidePostsEnabled);
+  updateToggleButton(hidePostsEnabled);
 
-  button.addEventListener('click', async () => {
+  toggleButton.addEventListener('click', async () => {
     const { hidePostsEnabled = false } = await chrome.storage.local.get('hidePostsEnabled');
-    const newState = !hidePostsEnabled;
+    const nextState = !hidePostsEnabled;
 
-    await chrome.storage.local.set({ hidePostsEnabled: newState });
-    updateButtonState(newState);
+    await chrome.storage.local.set({ hidePostsEnabled: nextState });
+    updateToggleButton(nextState);
 
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (tab?.id) {
-      chrome.tabs.sendMessage(tab.id, { action: 'toggleHidePosts', isEnabled: newState });
+    const [activeTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (activeTab?.id) {
+      chrome.tabs.sendMessage(activeTab.id, {
+        action: 'toggleHidePosts',
+        isEnabled: nextState
+      }).catch(() => {});
     }
   });
 });
 
-function updateButtonState(isEnabled) {
-  const button = document.getElementById('toggleButton');
-  button.textContent = isEnabled ? 'Show All Posts' : 'Hide Videos/GIFs/Links';
-  button.classList.toggle('disabled', !isEnabled);
+function updateToggleButton(isEnabled) {
+  const toggleButton = document.getElementById('toggleButton');
+  toggleButton.textContent = isEnabled ? 'Disable GA Filter' : 'Enable GA Filter';
+  toggleButton.classList.toggle('disabled', !isEnabled);
 }
